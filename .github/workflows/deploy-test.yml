@@ -1,0 +1,35 @@
+name: deploy test
+
+on:
+  push:
+    branches:
+      - test-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build & Deploy
+        env:
+          HOSTNAME: ${{ secrets.CVM_IP }}
+          USER_NAME: root
+          PRIVATE_KEY: ${{ secrets.CVM_SSH_KEY }}
+
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+            cd ~/test/koa-demos ;
+            echo '------ cd done ------' ;
+            git checkout test-deploy
+            git checkout .
+            git pull origin test-deploy
+            echo '------ git pull done ------' ;
+            docker rm $(docker stop $(docker ps -a -q --filter ancestor=koa-test-image))
+            echo '------ docker rm done ------' ;
+            docker build -t koa-test-image .
+            echo '------ docker build done ------'
+            docker run -d -p 3000:3000 koa-test-image
+            echo '------ docker run done ------' ;
+          '
+      - name: success
+        run: echo "deploy success"
