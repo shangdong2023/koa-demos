@@ -28,7 +28,7 @@ jobs:
             echo '------ docker rm done ------' ;
             docker build -t koa-test-image .
             echo '------ docker build done ------'
-            docker run -d -p 3000:3000 koa-test-image
+            docker run -d -p 5000:3000 koa-test-image
             echo '------ docker run done ------' ;
           '
       - name: success
